@@ -1,6 +1,8 @@
 const express = require("express");
 const mongoose = require("mongoose");
 
+const Thing = require("./models/Thing");
+
 mongoose
   .connect(
     "mongodb+srv://Antoine:admin@gofullstackfrontend.aptwr9a.mongodb.net/?retryWrites=true&w=majority",
@@ -10,8 +12,6 @@ mongoose
   .catch(() => console.log("Connexion à MongoDB échouée !"));
 
 const app = express();
-
-app.use(express.json());
 
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -26,11 +26,17 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use(express.json());
+
 app.post("/api/stuff", (req, res, next) => {
-  console.log(req.body);
-  res.status(201).json({
-    message: "Objet Crée",
+  delete req.body._id;
+  const thing = new Thing({
+    ...req.body,
   });
+  thing
+    .save()
+    .then(() => res.status(201).json({ message: "Objet créé" }))
+    .catch((error) => res.status(400).json({ error }));
 });
 
 app.get("/api/stuff", (req, res, next) => {
